@@ -73,7 +73,14 @@ conf.verb = 0
 
 hostname = socket.gethostname()
 gateway_ip = ni.gateways()['default'][ni.AF_INET][0]
-ip = ni.ifaddresses(interface)[ni.AF_INET][0]['addr']
+
+try:
+    ip = ni.ifaddresses(interface)[ni.AF_INET][0]['addr']
+except ValueError:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    ip = s.gesockname()[0]
+
 
 print ("[*] Your IP Address is: %s" % ip)
 print ("[*] Your default gateway is: %s" % gateway_ip)
