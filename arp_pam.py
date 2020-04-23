@@ -1,4 +1,5 @@
 from scapy.all import *
+import getmac
 import netifaces as ni
 import os
 import re
@@ -6,16 +7,6 @@ import signal
 import socket
 import sys
 import threading
-
-def get_mac(ip_address):
-
-    responses, unanswered = srp(Ether(dst = "ff:ff:ff:ff:ff:ff")/ARP(pdst = ip_address), timeout = 2, retry = 10)
-
-    #return the MAC address from a respnse
-    for s, r in responses:
-        return r[Ether].src
-
-    return None
 
 def arp_request(ip, gateway_ip):
     results, unanswered = sr(ARP(op = 'who-has', psrc = ip, pdst = gateway_ip))
@@ -85,7 +76,7 @@ except ValueError:
 print ("[*] Your IP Address is: %s" % ip)
 print ("[*] Your default gateway is: %s" % gateway_ip)
 
-gateway_mac = get_mac(gateway_ip)
+gateway_mac = getmac.get_mac_address(ip = gateway_ip)
 
 
 if gateway_mac is None:
