@@ -16,7 +16,7 @@ def arp_request(ip, gateway_ip):
 
     return
 
-def get_arp_cache(interface):
+def get_arp_cache():
     with os.popen('arp -a') as f:
         data = f.read()
 
@@ -26,13 +26,19 @@ def get_arp_cache(interface):
         if "Interface" in element or "Address" in element:
             continue
         else:
+            
             ip_match = re.search('[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}', element)
             mac_match = re.search('[0-9a-f]{2}[:-][0-9a-f]{2}[:-][0-9a-f]{2}[:-][0-9a-f]{2}[:-][0-9a-f]{2}[:-][0-9a-f]{2}', element)
-            interface_match = re.search(interface, element)
-            arp_entry_type = re.search('dynamic', element)
-            if ip_match != None and mac_match != None and (interface_match != None or arp_entry_type != None):
+            if ip_match != None and mac_match != None:
                 if (ip_match.group(0), mac_match.group(0)) not in arp_cache:
-                    arp_cache.append((ip_match.group(0), mac_match.group(0)))
+
+                    if sys.platform == 'win32':
+                        arp_entry_type = re.search('dynamic', element)
+                    else:
+                        arp_entry_type = ''
+
+                    if arp_entry_type != None:
+                        arp_cache.append((ip_match.group(0), mac_match.group(0)))
     print(arp_cache)
     return
 
@@ -52,29 +58,15 @@ def monitor(packet):
 
     return
 
-try:
-    interface = sys.argv[1]
-except:
-    print ("Usage: python3 arp_pam.py [interface]")
-    sys.exit(0)
-
-#set the interface
-#conf.iface = interface
-
 #turn off output
 conf.verb = 0
-
 
 hostname = socket.gethostname()
 gateway_ip = ni.gateways()['default'][ni.AF_INET][0]
 
-try:
-    ip = ni.ifaddresses(interface)[ni.AF_INET][0]['addr']
-except ValueError:
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    ip = s.getsockname()[0]
-
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(("8.8.8.8", 80))
+ip = s.getsockname()[0]
 
 print ("[*] Your IP Address is: %s" % ip)
 print ("[*] Your default gateway is: %s" % gateway_ip)
@@ -88,5 +80,5 @@ if gateway_mac is None:
 else:
     print ("[*] Gateway %s is at %s" % (gateway_ip, gateway_mac))
 
-get_arp_cache(interface)
+get_arp_cache()
 sniff(filter = "arp", prn = monitor)
