@@ -1,7 +1,7 @@
-from python_arptable import get_arp_table
 from scapy.all import *
 import netifaces as ni
 import os
+import re
 import signal
 import socket
 import sys
@@ -24,6 +24,25 @@ def arp_request(ip, gateway_ip):
         print(r.summary())
 
     return
+
+def get_arp_cache(interface):
+    with os.popen('arp -a') as f:
+        data = f.read()
+
+    arp_cache = []
+    unprocessed_cache = re.split('\n', data)
+    for element in unprocessed_cache:
+        if "Interface" in element or "Address" in element:
+            continue
+        else:
+            ip_match = re.search('[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}', element)
+            mac_match = re.search('[0-9a-f]{2}[:-][0-9a-f]{2}[:-][0-9a-f]{2}[:-][0-9a-f]{2}[:-][0-9a-f]{2}[:-][0-9a-f]{2}', element)
+            interface_match = re.search(interface, element)
+            if ip_match != None and mac_match != None and interface_match != None:
+                arp_cache.append((ip_match.group(0), mac_match.group(0)))
+    print(arp_cache)
+    return
+
 
 def monitor(packet):
 
@@ -54,7 +73,7 @@ conf.verb = 0
 
 hostname = socket.gethostname()
 gateway_ip = ni.gateways()['default'][ni.AF_INET][0]
-ip = ni.ifaddresses('eth0')[ni.AF_INET][0]['addr']
+ip = ni.ifaddresses(interface)[ni.AF_INET][0]['addr']
 
 print ("[*] Your IP Address is: %s" % ip)
 print ("[*] Your default gateway is: %s" % gateway_ip)
@@ -68,11 +87,5 @@ if gateway_mac is None:
 else:
     print ("[*] Gateway %s is at %s" % (gateway_ip, gateway_mac))
 
-arp_table = []
-temp_arp_table = get_arp_table()
-for i in range(0, len(temp_arp_table)):
-    arp_table.append([('IP address', temp_arp_table[i]['IP address']), ('HW address', temp_arp_table[i]['HW address'])])
-
-print(arp_table)
-
-sniff(filter = "arp", prn = monitor)
+get_arp_cache(interface)
+#sniff(filter = "arp", prn = monitor)
