@@ -25,7 +25,20 @@ def arp_request(ip, gateway_ip):
 
     return
 
-    
+def monitor(packet):
+
+    if packet[ARP].op == "is-at":
+        try:
+            real_mac = get_mac(packet[ARP].psrc)
+            response_mac = get_mac(packet[ARP].hwsrc)
+
+            if real_mac != response_mac:
+                print("[!] An ARP Poisoning attack is being attempted. Real MAC: %s. Response MAC: %s." % (real_mac, response_mac))
+        except IndexError:
+            print("[!!!] Unable to find real MAC. The IP may be fake or the packets are blocked.")
+
+    return
+
 try:
     interface = sys.argv[1]
 except:
@@ -58,7 +71,8 @@ else:
 arp_table = []
 temp_arp_table = get_arp_table()
 for i in range(0, len(temp_arp_table)):
-    arp_table += ([('IP address', temp_arp_table[i]['IP address']), ('HW address', temp_arp_table[i]['HW address'])])
+    arp_table.append([('IP address', temp_arp_table[i]['IP address']), ('HW address', temp_arp_table[i]['HW address'])])
 
 print(arp_table)
-arp_request(ip, gateway_ip)
+
+sniff(filter = "arp", prn = monitor)
