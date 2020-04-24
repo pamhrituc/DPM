@@ -16,6 +16,11 @@ def arp_request(ip, gateway_ip):
 
     return
 
+def get_mac(ip):
+    p = Ether(dst = "ff:ff:ff:ff:ff:ff")/ARP(pdst = ip)
+    result = srp(p, timeout = 2, verbose = False)[0]
+    return result[0][1].hwsrc
+
 def get_arp_cache():
     with os.popen('arp -a') as f:
         data = f.read()
@@ -39,24 +44,8 @@ def get_arp_cache():
 
                     if arp_entry_type != None:
                         arp_cache.append((ip_match.group(0), mac_match.group(0)))
-    print(arp_cache)
-    return
-
-
-def monitor(packet):
-    #Check for 2, since this represents a reply
-    if packet[ARP].op == 2:
-        print("YEET")
-        try:
-            real_mac = getmac.get_mac_address(ip = packet[ARP].psrc)
-            response_mac = getmac.get_mac_address(ip = packet[ARP].hwsrc)
-
-            if real_mac != response_mac:
-                print("[!] An ARP Poisoning attack is being attempted. Real MAC: %s. Response MAC: %s." % (real_mac, response_mac))
-        except IndexError:
-            print("[!!!] Unable to find real MAC. The IP may be fake or the packets are blocked.")
-
-    return
+    #print(arp_cache)
+    return arp_cache
 
 #turn off output
 conf.verb = 0
@@ -66,9 +55,9 @@ gateway_ip = ni.gateways()['default'][ni.AF_INET][0]
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
-ip = s.getsockname()[0]
+host_ip = s.getsockname()[0]
 
-print ("[*] Your IP Address is: %s" % ip)
+print ("[*] Your IP Address is: %s" % host_ip)
 print ("[*] Your default gateway is: %s" % gateway_ip)
 
 gateway_mac = getmac.get_mac_address(ip = gateway_ip)
@@ -80,5 +69,44 @@ if gateway_mac is None:
 else:
     print ("[*] Gateway %s is at %s" % (gateway_ip, gateway_mac))
 
-get_arp_cache()
+arp_cache = get_arp_cache()
+print(arp_cache)
+
+def monitor(packet):
+    #Check for 2, since this represents a reply
+    if packet[ARP].op == 2:
+        try:
+            #Why is it that the destination differs and not the source like that article says?? Well, I'll find a good explanation
+            real_mac = getmac.get_mac_address(ip = packet[ARP].pdst)
+            response_mac = packet[ARP].hwdst
+
+            if sys.platform == 'win32':
+                real_mac = real_mac.replace(':', '-')
+                response_mac = response_mac.replace(':', '-')
+            
+            # print((packet[ARP].pdst, real_mac))
+            # print((packet[ARP].pdst, response_mac))
+
+            if (packet[ARP].pdst, response_mac) in arp_cache:
+                if real_mac != response_mac:
+                    print("[!] An ARP Poisoning attack is being attempted. Attacker MAC: %s. Response MAC: %s." % (real_mac, response_mac))
+                    print("[*] Measures being taken to protect against this attack...")
+                    try:
+                        if sys.platform == 'win32':
+                            #os.popen('arp -d %s %s' % (packet[ARP].pdst, host_ip))
+                            os.popen('arp -d %s' % packet[ARP].pdst)
+                            os.popen('arp -s %s %s %s' % (packet[ARP].pdst, response_mac, host_ip))
+                        else:
+                            os.popen('arp -d %s' % packet[ARP].pdst)
+                            os.popen('arp -s %s %s' % (packet[ARP].pdst, response_mac))
+                        print("[*] Measures applied successfully.")
+                    except:
+                        print("[!!!] This tool should be run with root/admin priviledges.")
+                        print("[!!!] Since your system is under attack, disconnect from the internet. Otherwise, your data can be comprimised.")
+            
+        except IndexError:
+            print("[!!!] Unable to find real MAC. The IP may be fake or the packets are blocked.")
+
+    return
+
 sniff(filter = "arp", prn = monitor)
