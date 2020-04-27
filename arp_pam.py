@@ -25,7 +25,7 @@ def get_arp_cache():
     with os.popen('arp -a') as f:
         data = f.read()
 
-    arp_cache = []
+    arp_cache = {}
     unprocessed_cache = re.split('\n', data)
     for element in unprocessed_cache:
         if "Interface" in element or "Address" in element:
@@ -43,7 +43,7 @@ def get_arp_cache():
                         arp_entry_type = ''
 
                     if arp_entry_type != None:
-                        arp_cache.append((ip_match.group(0), mac_match.group(0)))
+                        arp_cache[ip_match.group(0)] = mac_match.group(0)
     #print(arp_cache)
     return arp_cache
 
@@ -73,6 +73,7 @@ arp_cache = get_arp_cache()
 print(arp_cache)
 
 def monitor(packet):
+    global arp_cache
     #Check for 2, since this represents a reply
     if packet[ARP].op == 2:
         try:
@@ -84,25 +85,28 @@ def monitor(packet):
                 real_mac = real_mac.replace(':', '-')
                 response_mac = response_mac.replace(':', '-')
             
-            # print((packet[ARP].pdst, real_mac))
-            # print((packet[ARP].pdst, response_mac))
-
-            if (packet[ARP].pdst, response_mac) in arp_cache:
-                if real_mac != response_mac:
-                    print("[!] An ARP Poisoning attack is being attempted. Attacker MAC: %s. Response MAC: %s." % (real_mac, response_mac))
-                    print("[*] Measures being taken to protect against this attack...")
-                    try:
-                        if sys.platform == 'win32':
-                            #os.popen('arp -d %s %s' % (packet[ARP].pdst, host_ip))
-                            os.popen('arp -d %s' % packet[ARP].pdst)
-                            os.popen('arp -s %s %s %s' % (packet[ARP].pdst, response_mac, host_ip))
-                        else:
-                            os.popen('arp -d %s' % packet[ARP].pdst)
-                            os.popen('arp -s %s %s' % (packet[ARP].pdst, response_mac))
-                        print("[*] Measures applied successfully.")
-                    except:
-                        print("[!!!] This tool should be run with root/admin priviledges.")
-                        print("[!!!] Since your system is under attack, disconnect from the internet. Otherwise, your data can be comprimised.")
+            print((packet[ARP].pdst, real_mac))
+            print((packet[ARP].pdst, response_mac))
+            print((packet[ARP].psrc, getmac.get_mac_address(ip = packet[ARP].psrc)))
+            print((packet[ARP].psrc, packet[ARP].hwsrc))
+            if real_mac != response_mac:
+                print("[!] An ARP Poisoning attack is being attempted. Attacker MAC: %s. Response MAC: %s." % (real_mac, response_mac))
+                print("[*] Measures being taken to protect against this attack...")
+                try:
+                    if sys.platform == 'win32':
+                        #os.popen('arp -d %s %s' % (packet[ARP].pdst, host_ip))
+                        os.popen('arp -d %s' % packet[ARP].psrc)
+                        os.popen('arp -s %s %s %s' % (packet[ARP].psrc, response_mac, host_ip))
+                    else:
+                        #os.popen('arp -d %s' % packet[ARP].psrc)
+                        os.popen('arp -s %s %s' % (packet[ARP].psrc, arp_cache[packet[ARP].psrc]))
+                    print("[*] Measures applied successfully.")
+                except:
+                    print("[!!!] This tool should be run with root/admin priviledges.")
+                    print("[!!!] Since your system is under attack, disconnect from the internet. Otherwise, your data can be comprimised.")
+            else:
+                arp_cache = get_arp_cache()
+                print(arp_cache)
             
         except IndexError:
             print("[!!!] Unable to find real MAC. The IP may be fake or the packets are blocked.")
