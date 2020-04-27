@@ -85,20 +85,16 @@ def monitor(packet):
                 real_mac = real_mac.replace(':', '-')
                 response_mac = response_mac.replace(':', '-')
             
-            print((packet[ARP].pdst, real_mac))
-            print((packet[ARP].pdst, response_mac))
-            print((packet[ARP].psrc, getmac.get_mac_address(ip = packet[ARP].psrc)))
-            print((packet[ARP].psrc, packet[ARP].hwsrc))
             if real_mac != response_mac:
                 print("[!] An ARP Poisoning attack is being attempted. Attacker MAC: %s. Response MAC: %s." % (real_mac, response_mac))
                 print("[*] Measures being taken to protect against this attack...")
                 try:
                     if sys.platform == 'win32':
-                        #os.popen('arp -d %s %s' % (packet[ARP].pdst, host_ip))
+                        os.popen('arp -d %s %s' % (packet[ARP].pdst, host_ip))
                         os.popen('arp -d %s' % packet[ARP].psrc)
-                        os.popen('arp -s %s %s %s' % (packet[ARP].psrc, response_mac, host_ip))
+                        os.popen('arp -s %s %s %s' % (packet[ARP].pdst, arp_cache[packet[ARP].pdst], host_ip))
                     else:
-                        #os.popen('arp -d %s' % packet[ARP].psrc)
+                        os.popen('arp -d %s' % packet[ARP].psrc)
                         os.popen('arp -s %s %s' % (packet[ARP].psrc, arp_cache[packet[ARP].psrc]))
                     print("[*] Measures applied successfully.")
                 except:
