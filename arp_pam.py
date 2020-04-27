@@ -76,8 +76,7 @@ def monitor(packet):
     global arp_cache
     #Check for 2, since this represents a reply
     if packet[ARP].op == 2:
-        try:
-            #Why is it that the destination differs and not the source like that article says?? Well, I'll find a good explanation
+        try:        
             real_mac = getmac.get_mac_address(ip = packet[ARP].pdst)
             response_mac = packet[ARP].hwdst
 
@@ -91,7 +90,7 @@ def monitor(packet):
                 try:
                     if sys.platform == 'win32':
                         os.popen('arp -d %s %s' % (packet[ARP].pdst, host_ip))
-                        os.popen('arp -d %s' % packet[ARP].psrc)
+                        #os.popen('arp -d %s' % packet[ARP].psrc)
                         os.popen('arp -s %s %s %s' % (packet[ARP].pdst, arp_cache[packet[ARP].pdst], host_ip))
                     else:
                         os.popen('arp -d %s' % packet[ARP].psrc)
