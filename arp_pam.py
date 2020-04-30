@@ -91,29 +91,31 @@ def monitor(packet):
                 real_mac = real_mac.replace(':', '-')
                 response_mac = response_mac.replace(':', '-')
             
-            if real_mac != response_mac:
-                if packet[ARP].psrc not in get_ips_by_mac(arp_cache, response_mac):
-                    print("[!] An ARP Poisoning attack is being attempted. Attacker MAC: %s. Response MAC: %s." % (real_mac, response_mac))
-                    print("[*] Measures being taken to protect against this attack...")
-                    try:
-                        if sys.platform == 'win32':
-                            os.popen('arp -d %s %s' % (packet[ARP].psrc, host_ip))
-                            #os.popen('arp -d %s' % packet[ARP].psrc)
-                            os.popen('arp -s %s %s %s' % (packet[ARP].pdst, arp_cache[packet[ARP].pdst], host_ip))
-                        else:
-                            os.popen('arp -d %s' % packet[ARP].psrc)
-                            os.popen('arp -s %s %s' % (packet[ARP].psrc, arp_cache[packet[ARP].psrc]))
-                        print("[*] Measures applied successfully.")
-                    except:
-                        print("[!!!] This tool should be run with root/admin priviledges.")
-                        print("[!!!] Since your system is under attack, disconnect from the internet. Otherwise, your data can be comprimised.")
-            else:
+            if packet[ARP].psrc not in get_ips_by_mac(arp_cache, response_mac):
+                print("[!] An ARP Poisoning attack is being attempted. Attacker MAC: %s. Response MAC: %s." % (real_mac, response_mac))
+                print("[*] Measures being taken to protect against this attack...")
+                try:
+                    if sys.platform == 'win32':
+                        os.popen('arp -d %s %s' % (packet[ARP].psrc, host_ip))
+                        #os.popen('arp -d %s' % packet[ARP].psrc)
+                        os.popen('arp -s %s %s %s' % (packet[ARP].pdst, arp_cache[packet[ARP].pdst], host_ip))
+                    else:
+                        os.popen('arp -d %s' % packet[ARP].psrc)
+                        os.popen('arp -s %s %s' % (packet[ARP].psrc, arp_cache[packet[ARP].psrc]))
+                    print("[*] Measures applied successfully.")
+                except:
+                    print("[!!!] This tool should be run with root/admin priviledges.")
+                    print("[!!!] Since your system is under attack, disconnect from the internet. Otherwise, your data can be comprimised.")
+            elif response_mac == gateway_mac:
                 if sys.platform == 'win32':
                     os.popen('arp -d %s %s' % (gateway_ip, host_ip))
                     os.popen('ping %s -n 1' % gateway_ip)
+                    time.sleep(0.5)
                 else:
                     os.popen('arp -d %s' % gateway_ip)
-                    os.popen('ping %s -c 1' % gateway_ip)
+                    os.popen('ping i%s -c 1' % gateway_ip)
+                    time.sleep(0.5)
+            if arp_cache != get_arp_cache():
                 arp_cache = get_arp_cache()
                 print(arp_cache)
             
