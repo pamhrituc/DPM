@@ -113,7 +113,7 @@ def monitor(packet):
                     time.sleep(0.5)
                 else:
                     os.popen('arp -d %s' % gateway_ip)
-                    os.popen('ping i%s -c 1' % gateway_ip)
+                    os.popen('ping %s -c 1' % gateway_ip)
                     time.sleep(0.5)
             if arp_cache != get_arp_cache():
                 arp_cache = get_arp_cache()
