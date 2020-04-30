@@ -108,6 +108,12 @@ def monitor(packet):
                         print("[!!!] This tool should be run with root/admin priviledges.")
                         print("[!!!] Since your system is under attack, disconnect from the internet. Otherwise, your data can be comprimised.")
             else:
+                if sys.platform == 'win32':
+                    os.popen('arp -d %s %s' % (gateway_ip, host_ip))
+                    os.popen('ping %s -n 1' % gateway_ip)
+                else:
+                    os.popen('arp -d %s' % gateway_ip)
+                    os.popen('ping %s -c 1')
                 arp_cache = get_arp_cache()
                 print(arp_cache)
             
