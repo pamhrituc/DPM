@@ -15,19 +15,6 @@ def get_ips_by_mac(cache, mac):
             ip_list.append(ip)
     return ip_list
 
-def arp_request(ip, gateway_ip):
-    results, unanswered = sr(ARP(op = 'who-has', psrc = ip, pdst = gateway_ip))
-    for s, r in results:
-        print(s.summary())
-        print(r.summary())
-
-    return
-
-def get_mac(ip):
-    p = Ether(dst = "ff:ff:ff:ff:ff:ff")/ARP(pdst = ip)
-    result = srp(p, timeout = 2, verbose = False)[0]
-    return result[0][1].hwsrc
-
 def get_arp_cache():
     with os.popen('arp -a') as f:
         data = f.read()
