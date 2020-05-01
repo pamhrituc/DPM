@@ -91,8 +91,8 @@ def monitor(packet):
                         os.popen('arp -s %s %s' % (packet[ARP].psrc, arp_cache[packet[ARP].psrc]))
                     print("[*] Measures applied successfully.")
                 except:
-                    print("[!!!] This tool should be run with root/admin priviledges.")
-                    print("[!!!] Since your system is under attack, disconnect from the internet. Otherwise, your data can be comprimised.")
+                    print("[!!!] This tool should be run with root/admin privileges.")
+                    print("[!!!] Since your system is under attack, disconnect from the internet. Otherwise, your data can be compromised.")
             elif response_mac == gateway_mac:
                 if sys.platform == 'win32':
                     os.popen('arp -d %s %s' % (gateway_ip, host_ip))
