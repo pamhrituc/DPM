@@ -101,9 +101,9 @@ def monitor(packet):
                     os.popen('arp -d %s' % gateway_ip)
                     os.popen('ping %s -c 1' % gateway_ip)
                     time.sleep(0.5)
-            if arp_cache != get_arp_cache():
-                arp_cache = get_arp_cache()
-                print(arp_cache)
+                if arp_cache != get_arp_cache():
+                    arp_cache = get_arp_cache()
+                    print(arp_cache)
             
         except IndexError:
             print("[!!!] Unable to find real MAC. The IP may be fake or the packets are blocked.")
