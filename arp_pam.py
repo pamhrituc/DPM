@@ -79,19 +79,18 @@ def monitor(packet):
                 response_mac = response_mac.replace(':', '-')
             
             if packet[ARP].psrc not in get_ips_by_mac(arp_cache, response_mac):
-                print("[!] An ARP Poisoning attack is being attempted. Attacker MAC: %s. Response MAC: %s." % (real_mac, response_mac))
+                print("[!] An ARP Poisoning attack is being attempted. Attacker MAC: %s. Response MAC: %s." % (response_mac, real_mac))
                 print("[*] Measures being taken to protect against this attack...")
                 try:
                     if sys.platform == 'win32':
                         os.popen('arp -d %s %s' % (packet[ARP].psrc, host_ip))
-                        #os.popen('arp -d %s' % packet[ARP].psrc)
                         os.popen('arp -s %s %s %s' % (packet[ARP].pdst, arp_cache[packet[ARP].pdst], host_ip))
                     else:
                         os.popen('arp -d %s' % packet[ARP].psrc)
                         os.popen('arp -s %s %s' % (packet[ARP].psrc, arp_cache[packet[ARP].psrc]))
                     print("[*] Measures applied successfully.")
                 except:
-                    print("[!!!] This tool should be run with root/admin privileges.")
+                    print("[!!!] An error has occurred while trying to persist changes to ARP cache. Make sure you are running this tool with admin/root privileges")
                     print("[!!!] Since your system is under attack, disconnect from the internet. Otherwise, your data can be compromised.")
             elif response_mac == gateway_mac:
                 if sys.platform == 'win32':
