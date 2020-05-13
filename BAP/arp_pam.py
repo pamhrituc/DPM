@@ -8,12 +8,14 @@ import socket
 import sys
 import threading
 
+
 def get_ips_by_mac(cache, mac):
     ip_list = []
     for ip in cache:
         if cache[ip] == mac:
             ip_list.append(ip)
     return ip_list
+
 
 def get_arp_cache():
     with os.popen('arp -a') as f:
@@ -41,30 +43,6 @@ def get_arp_cache():
     #print(arp_cache)
     return arp_cache
 
-#turn off output
-conf.verb = 0
-
-hostname = socket.gethostname()
-gateway_ip = ni.gateways()['default'][ni.AF_INET][0]
-
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.connect(("8.8.8.8", 80))
-host_ip = s.getsockname()[0]
-
-print ("[*] Your IP Address is: %s" % host_ip)
-print ("[*] Your default gateway is: %s" % gateway_ip)
-
-gateway_mac = getmac.get_mac_address(ip = gateway_ip)
-
-
-if gateway_mac is None:
-    print ("[!!!] Failed to get gateway MAC. Exiting...")
-    sys.exit(0)
-else:
-    print ("[*] Gateway %s is at %s" % (gateway_ip, gateway_mac))
-
-arp_cache = get_arp_cache()
-print(arp_cache)
 
 def monitor(packet):
     global arp_cache
@@ -107,7 +85,35 @@ def monitor(packet):
             
         except IndexError:
             print("[!!!] Unable to find real MAC. The IP may be fake or the packets are blocked.")
-
     return
 
-sniff(filter = "arp", prn = monitor)
+try:
+    #turn off output
+    conf.verb = 0
+
+    hostname = socket.gethostname()
+    gateway_ip = ni.gateways()['default'][ni.AF_INET][0]
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    host_ip = s.getsockname()[0]
+
+    print ("[*] Your IP Address is: %s" % host_ip)
+    print ("[*] Your default gateway is: %s" % gateway_ip)
+
+    gateway_mac = getmac.get_mac_address(ip = gateway_ip)
+
+    if gateway_mac is None:
+        print ("[!!!] Failed to get gateway MAC. Exiting...")
+        sys.exit(1)
+    else:
+        print ("[*] Gateway %s is at %s" % (gateway_ip, gateway_mac))
+
+        arp_cache = get_arp_cache()
+        print(arp_cache)
+    
+    sniff(filter = "arp", prn = monitor)
+except KeyboardInterrupt:
+    print("[*] User requested shutdown.")
+    print("[*] Exiting...")
+    sys.exit(0)
