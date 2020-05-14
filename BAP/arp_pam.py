@@ -43,6 +43,8 @@ def get_arp_cache():
     #print(arp_cache)
     return arp_cache
 
+def check_if_arp_poison(arp_cache):
+    return len(set(arp_cache.values())) == len(set(arp_cache.keys()))
 
 def monitor(packet):
     global arp_cache
@@ -62,7 +64,7 @@ def monitor(packet):
                 try:
                     if sys.platform == 'win32':
                         os.popen('arp -d %s %s' % (packet[ARP].psrc, host_ip))
-                        os.popen('arp -s %s %s %s' % (packet[ARP].pdst, arp_cache[packet[ARP].pdst], host_ip))
+                        os.popen('arp -s %s %s %s' % (packet[ARP].psrc, arp_cache[packet[ARP].psrc], host_ip))
                     else:
                         os.popen('arp -d %s' % packet[ARP].psrc)
                         os.popen('arp -s %s %s' % (packet[ARP].psrc, arp_cache[packet[ARP].psrc]))
@@ -109,9 +111,16 @@ try:
     else:
         print ("[*] Gateway %s is at %s" % (gateway_ip, gateway_mac))
 
-        arp_cache = get_arp_cache()
-        print(arp_cache)
-    
+    arp_cache = get_arp_cache()
+    print(arp_cache)
+
+    if not check_if_arp_poison(arp_cache):
+        print("[!] There is a possibility that your system is under attack.")
+        print("[!] There are duplicate MAC entries in your arp_cache.")
+        print("[!] Try turning your internet off to stop the attack.")
+        print("[!] This program cannot run correctly if your arp cache is currently compromised.")
+        sys.exit(1)
+
     sniff(filter = "arp", prn = monitor)
 except KeyboardInterrupt:
     print("[*] User requested shutdown.")
