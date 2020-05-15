@@ -1,24 +1,38 @@
 from scapy.all import *
+import socket
 import sys
+import time
 
 def querysniff(packet):
+    global host_ip
     if IP in packet:
         ip_src = packet[IP].src
         ip_dst = packet[IP].dst
-        if packet.haslayer(DNS) and packet.getlayer(DNS).qr == 0:
-            print(str(ip_src) + "->" + src(ip_dst) ": (" + packet.getlayer(DNS).qd.qname.decode("utf-8") + ")")
+        if ip_src == host_ip and packet.haslayer(DNS) and packet.getlayer(DNS).qr == 0:
+            dns_hostname = str(packet.getlayer(DNS).qd.qname)[2:-1]
+            try:
+                ip_from_gateway = socket.gethostbyname(dns_hostname)
+                ans = sr1(IP(dst = "8.8.8.8")/UDP(sport = RandShort(), dport = 53)/DNS(rd = 1, qd = DNSQR(qname = dns_hostname, qtype = "A")))
+                ip_from_address = ans.an.rdata
+                if ip_from_gateway != ip_from_address:
+                    #check if ips are from same class, I guess. I don't know
+                    print("(%s, %s)" % (ip_from_gateway, ip_from_address))
+                    print("%s -> %s: (%s)" %s (str(ip_src), str(ip_dst), dns_hostname))
+                    print()
+            except socket.gaierror:
+                print()
 
 
 try:
-    interface = input("[*] Enter interface: ")
-    sniff(iface = interface, filter = "port 53", prn = querysniff, store = 0)
+    conf.verb = 0
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(('8.8.8.8', 80))
+    host_ip = s.getsockname()[0]
+    print("[*] Your host IP address is: %s" % host_ip)
+    
+    sniff(filter = "port 53", prn = querysniff, store = 0)
 except KeyboardInterrupt:
     print("[*] User requested shutdown.")
     print("[*] Exiting...")
     sys.exit(1)
 
-'''
-#this part returns the actual IP of the address. All we need to do it check this with the ping
-ans = sr1(IP(dst="8.8.8.8")/UDP(sport=RandShort(), dport = 53)/DNS(rd=1,qd=DNSQR(qname="secdev.org", qtype = "A")))
-print(ans.an.rdata) #secdev.org's IP
-'''
