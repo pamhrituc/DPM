@@ -15,10 +15,12 @@ def querysniff(packet):
                 ans = sr1(IP(dst = "8.8.8.8")/UDP(sport = RandShort(), dport = 53)/DNS(rd = 1, qd = DNSQR(qname = dns_hostname, qtype = "A")))
                 ip_from_address = ans.an.rdata
                 if ip_from_gateway != ip_from_address:
-                    #check if ips are from same class, I guess. I don't know
-                    print("(%s, %s)" % (ip_from_gateway, ip_from_address))
-                    print("%s -> %s: (%s)" %s (str(ip_src), str(ip_dst), dns_hostname))
-                    print()
+                    dot_gateway = ip_from_gateway.find('.')
+                    dot_address = ip_from_address.find('.')
+                    if ip_from_gateway[:dot_gateway] != ip_from_address[:dot_address]:
+                        print("(%s, %s)" % (ip_from_gateway, ip_from_address))
+                        print("%s -> %s: (%s)" % (str(ip_src), str(ip_dst), dns_hostname))
+                        print()
             except socket.gaierror:
                 print()
 
