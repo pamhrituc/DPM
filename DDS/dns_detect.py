@@ -14,7 +14,7 @@ def querysniff(packet):
                 ip_from_gateway = socket.gethostbyname(dns_hostname)
                 ans = sr1(IP(dst = "8.8.8.8")/UDP(sport = RandShort(), dport = 53)/DNS(rd = 1, qd = DNSQR(qname = dns_hostname, qtype = "A")))
                 ip_from_address = ans.an.rdata
-                if ip_from_gateway != ip_from_address:
+                if str(ip_from_address).find('b') > -1:
                     dot_gateway = ip_from_gateway.find('.')
                     dot_address = ip_from_address.find('.')
                     if ip_from_gateway[:dot_gateway] != ip_from_address[:dot_address]:
