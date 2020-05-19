@@ -11,17 +11,18 @@ def querysniff(packet):
         if ip_src == host_ip and packet.haslayer(DNS) and packet.getlayer(DNS).qr == 0:
             dns_hostname = str(packet.getlayer(DNS).qd.qname)[2:-1]
             os.popen('ping %s -c 1' % dns_hostname)
-            time.sleep(0.5)
+            time.sleep(0.1)
             try:
                 ip_from_gateway = socket.gethostbyname(dns_hostname)
                 ans = sr1(IP(dst = "8.8.8.8")/UDP(sport = RandShort(), dport = 53)/DNS(rd = 1, qd = DNSQR(qname = dns_hostname, qtype = "A")))
                 ip_from_address = ans.an.rdata
                 if str(ip_from_address).find('b') != 0:
-                    dot_gateway = ip_from_gateway.find('.')
-                    dot_address = ip_from_address.find('.')
-                    if ip_from_gateway[:dot_gateway] != ip_from_address[:dot_address]:
-                        print("(%s, %s)" % (ip_from_gateway, ip_from_address))
-                        print("%s -> %s: (%s)" % (str(ip_src), str(ip_dst), dns_hostname))
+                    if ip_from_gateway != ip_from_address:
+                        #print("(%s, %s)" % (ip_from_gateway, ip_from_address))
+                        #print("%s -> %s: (%s)" % (str(ip_src), str(ip_dst), dns_hostname))
+                        print("[*] Your system might be under a DNS Spoofing attack.")
+                        print("[*] IP address of %s returned from gateway: %s" % (dns_hostname, ip_from_gateway))
+                        print("[*] IP address of %s returned from DNS server: %s" % (dns_hostname, ip_from_address))
                         print()
             except socket.gaierror:
                 print()
