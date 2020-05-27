@@ -9,12 +9,16 @@ def remote_ips():
 
     for process in psutil.process_iter():
         try:
-            connections = process.get_connections(kind = 'inet')
+            connections = process.connections(kind = 'inet')
         except psutil.AccessDenied or psutil.NoSuchProcess:
             pass
         else:
             for connection in connections:
-                if connection.remote_address and connection.remote_address[0] not in remote_ips:
-                    remote_ips.append(connection.remote_address[0])
+                if connection[4] != ():
+                    remote_ips.append(connection[4][0][connection[4][0].rfind(':') + 1:])
+                    remote_ips = list(set(remote_ips))
 
     return remote_ips
+
+while True:
+    print(remote_ips())
