@@ -27,7 +27,7 @@ def process_packet(packet):
                 print
                 process = subprocess.Popen(['./no_connections_ip.sh', src_ip], stdout = subprocess.PIPE)
                 process = process.communicate()[0]
-                result = str(p)[2:-4]
+                result = str(process)[2:-4]
                 print(result)
                 number_of_communications = result[:result.find(" ")]
                 print(f"\n{BLUE}[*] The number of connections established from IP: {src_ip} is {number_of_communications}.{RESET}")
