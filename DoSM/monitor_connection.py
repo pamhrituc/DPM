@@ -1,24 +1,39 @@
-import psutil
+from colorama import init, Fore
+from scapy.all import *
+from scapy.layers.http import HTTPRequest, HTTPResponse
+import socket
+import sys
 
-def remote_ips():
-    '''
-    Returns the list of IPs for current active connections
-    '''
+init()
+BLUE = Fore.BLUE
+GREEN = Fore.GREEN
+RED = Fore.RED
+RESET = Fore.RESET
 
-    remote_ips = []
+def process_packet(packet):
+    if packet.haslayer(HTTPRequest):
+        src_ip = packet[IP].src
+        if src_ip != host_ip:
+            url = packet[HTTPRequest].Host.decode() + packet[HTTPRequest].Path.decode()
+            method = packet[HTTPRequest].Method.decode()
+            print(f"\n{GREEN}[*] {ip} Requested {url} with {method}{RESET}")
+            print(packet.show())
+            if packet.haslayer(Raw) and method == "POST":
+                print(f"\n{BLUE}[*] Some useful Raw data: {packet[raw].load}{RESET}")
 
-    for process in psutil.process_iter():
-        try:
-            connections = process.connections(kind = 'inet')
-        except psutil.AccessDenied or psutil.NoSuchProcess:
-            pass
-        else:
-            for connection in connections:
-                if connection[4] != ():
-                    remote_ips.append(connection[4][0][connection[4][0].rfind(':') + 1:])
-                    remote_ips = list(set(remote_ips))
+if __name__ == "__main__":
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        host_ip = s.getsockname()[0]
+        print(f"\n{GREEN}[*] Your host ip: {host_ip}")
 
-    return remote_ips
+        sniff(filter = "port 80", prn = process_packet, store = False)
 
-while True:
-    print(remote_ips())
+    except KeyboardInterrupt:
+        print(f"\n{BLUE}[*] User requested shutdown.{RESET}")
+        print(f"{BLUE}[*] Exiting...{RESET}")
+    except:
+        print(f"\n{RED}[!] Unable to retreive host's ip.")
+        print(f"{BLUE}[*] Exiting...{RESET}")
+        sys.exit(1)
