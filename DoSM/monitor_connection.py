@@ -16,7 +16,7 @@ def process_packet(packet):
         if src_ip != host_ip:
             url = packet[HTTPRequest].Host.decode() + packet[HTTPRequest].Path.decode()
             method = packet[HTTPRequest].Method.decode()
-            print(f"\n{GREEN}[*] {ip} Requested {url} with {method}{RESET}")
+            print(f"\n{GREEN}[*] {src_ip} Requested {url} with {method}{RESET}")
             print(packet.show())
             if packet.haslayer(Raw) and method == "POST":
                 print(f"\n{BLUE}[*] Some useful Raw data: {packet[raw].load}{RESET}")
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print(f"\n{BLUE}[*] User requested shutdown.{RESET}")
         print(f"{BLUE}[*] Exiting...{RESET}")
-    except:
+    except socket.error:
         print(f"\n{RED}[!] Unable to retreive host's ip.")
         print(f"{BLUE}[*] Exiting...{RESET}")
         sys.exit(1)
