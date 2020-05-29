@@ -14,7 +14,7 @@ GREEN = Fore.GREEN
 RED = Fore.RED
 RESET = Fore.RESET
 
-def retrieved_blackholed_ip():
+def retrieved_blackholed_ips():
     with os.popen("ip route | grep 'blackhole'") as f:
         data = f.read()
 
