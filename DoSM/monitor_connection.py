@@ -2,6 +2,8 @@ from colorama import init, Fore
 from scapy.all import *
 from scapy.layers.http import HTTPRequest, HTTPResponse
 import argparse
+import os
+import re
 import socket
 import subprocess
 import sys
@@ -12,6 +14,19 @@ GREEN = Fore.GREEN
 RED = Fore.RED
 RESET = Fore.RESET
 
+def retrieved_blackholed_ip():
+    with os.popen("ip route | grep 'blackhole'") as f:
+        data = f.read()
+
+    blackholed_ips = []
+    unprocessed_ips = re.split('\n', data)
+    for element in unprocessed_ips:
+        processed_ip = re.split(' ', element)
+        if len(processed_ip) > 1:
+            blackholed_ips.append(processed_ip[1])
+
+    return blackholed_ips
+
 def process_packet(packet):
     if packet.haslayer(HTTPRequest):
         src_ip = packet[IP].src
@@ -21,20 +36,19 @@ def process_packet(packet):
                 method = packet[HTTPRequest].Method.decode()
                 print(f"\n{GREEN}[*] {src_ip} Requested {url} with {method}{RESET}")
                 print(packet[HTTPRequest].show())
-                if packet.haslayer(Raw) and method == "POST":
-                    print(f"\n{BLUE}[*] Some useful Raw data: {packet[raw].load}{RESET}")
+
             else:
-                print(f"\n{RED}[!] Host was not found.{RESET}")
-                print
                 process = subprocess.Popen(['./no_connections_ip.sh', src_ip], stdout = subprocess.PIPE)
                 process = process.communicate()[0]
                 result = str(process)[2:-4]
-                print(result)
                 number_of_connections = int(result[:result.find(" ")])
                 if max_no_connections <= number_of_connections:
                     print(f"\n{BLUE}[*] The number of connections established from IP: {src_ip} is {number_of_connections}.{RESET}")
-                    if subprocess.call(["ip", "route", "add", "blackhole", src_ip]) == 0:
+                    blackhole_result = subprocess.call(["ip", "route", "add", "blackhole", src_ip])
+                    if blackhole_result == 0:
                         print(f"\n{GREEN}[*] {src_ip} has been blocked.{RESET}")
+                    elif src_ip in retrieved_blackholed_ips:
+                        continue
                     else:
                         print(f"\n{RED}[!] Error in blocking {src_ip}.{RESET}")
 
