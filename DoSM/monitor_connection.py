@@ -1,6 +1,7 @@
 from colorama import init, Fore
 from scapy.all import *
 from scapy.layers.http import HTTPRequest, HTTPResponse
+import argparse
 import socket
 import subprocess
 import sys
@@ -19,7 +20,7 @@ def process_packet(packet):
                 url = packet[HTTPRequest].Host.decode() + packet[HTTPRequest].Path.decode()
                 method = packet[HTTPRequest].Method.decode()
                 print(f"\n{GREEN}[*] {src_ip} Requested {url} with {method}{RESET}")
-                print(packet.show())
+                print(packet[HTTPRequest].show())
                 if packet.haslayer(Raw) and method == "POST":
                     print(f"\n{BLUE}[*] Some useful Raw data: {packet[raw].load}{RESET}")
             else:
@@ -29,11 +30,25 @@ def process_packet(packet):
                 process = process.communicate()[0]
                 result = str(process)[2:-4]
                 print(result)
-                number_of_communications = result[:result.find(" ")]
-                print(f"\n{BLUE}[*] The number of connections established from IP: {src_ip} is {number_of_communications}.{RESET}")
+                number_of_connections = result[:result.find(" ")]
+                if max_no_connections <= number_of_connections:
+                    print(f"\n{BLUE}[*] The number of connections established from IP: {src_ip} is {number_of_connections}.{RESET}")
+                    if subprocess.call(["ip", "route", "add", "blackhole", src_ip]) == 0:
+                        print(f"\n{GREEN}[*] {src_ip} has been blocked.{RESET}")
+                    else:
+                        print(f"\n{RED}[!] Error in blocking {src_ip}.{RESET}")
+
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description = "A tool which monitors connections established from clients and blocks them if the maximum number of clients is exceded. To unblock IP addresses, run the unblock_ip script.")
+    parser.add_argument("-c", "--connections", help = "Allows the establishment of the maximum number of connections allowed from a client. Default is 100.")
+    args = parser.parse_args()
+    if args.connections:
+        max_no_connections = args.connections
+    else:
+        max_no_connections = 100
+
     try:
         subprocess.call(["chmod", "+x", "no_connections_ip.sh"])
 
