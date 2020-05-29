@@ -47,9 +47,7 @@ def process_packet(packet):
                     blackhole_result = subprocess.call(["ip", "route", "add", "blackhole", src_ip])
                     if blackhole_result == 0:
                         print(f"\n{GREEN}[*] {src_ip} has been blocked.{RESET}")
-                    elif src_ip in retrieved_blackholed_ips:
-                        continue
-                    else:
+                    elif src_ip not in retrieved_blackholed_ips:
                         print(f"\n{RED}[!] Error in blocking {src_ip}.{RESET}")
 
 
