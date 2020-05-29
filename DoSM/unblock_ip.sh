@@ -3,6 +3,7 @@
 blue=`tput setaf 21`
 green=`tput setaf 34`
 red=`tput setaf 9`
+ok=0
 
 print_help()
 {
@@ -18,12 +19,19 @@ if [ "$#" -eq 0 ]; then
 else
 	if [ $1 == "-h" ]; then
 		print_help
+		ok=1
 	fi
 	if [ "$1" == "-a" ]; then
+		ok=1
 		ip route | grep 'blackhole' | while read -r line; do
 		vars=( $line )
 		ip route del "${vars[1]}"
 	done
+	fi
+	if [ $ok -eq 0 ]; then
+		for ip in "$@"; do 
+			ip route del $ip
+		done
 	fi
 fi
 tput sgr0
