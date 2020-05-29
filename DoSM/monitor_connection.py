@@ -30,7 +30,7 @@ def process_packet(packet):
                 process = process.communicate()[0]
                 result = str(process)[2:-4]
                 print(result)
-                number_of_connections = result[:result.find(" ")]
+                number_of_connections = int(result[:result.find(" ")])
                 if max_no_connections <= number_of_connections:
                     print(f"\n{BLUE}[*] The number of connections established from IP: {src_ip} is {number_of_connections}.{RESET}")
                     if subprocess.call(["ip", "route", "add", "blackhole", src_ip]) == 0:
