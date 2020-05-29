@@ -35,7 +35,6 @@ def process_packet(packet):
                 url = packet[HTTPRequest].Host.decode() + packet[HTTPRequest].Path.decode()
                 method = packet[HTTPRequest].Method.decode()
                 print(f"\n{GREEN}[*] {src_ip} Requested {url} with {method}{RESET}")
-                print(packet[HTTPRequest].show())
 
             else:
                 process = subprocess.Popen(['./no_connections_ip.sh', src_ip], stdout = subprocess.PIPE)
@@ -43,9 +42,9 @@ def process_packet(packet):
                 result = str(process)[2:-4]
                 number_of_connections = int(result[:result.find(" ")])
                 if max_no_connections <= number_of_connections:
-                    print(f"\n{BLUE}[*] The number of connections established from IP: {src_ip} is {number_of_connections}.{RESET}")
                     blackhole_result = subprocess.call(["ip", "route", "add", "blackhole", src_ip])
                     if blackhole_result == 0:
+                        print(f"\n{BLUE}[*] The number of connections established from IP: {src_ip} is {number_of_connections}.{RESET}")
                         print(f"\n{GREEN}[*] {src_ip} has been blocked.{RESET}")
                     elif src_ip not in retrieved_blackholed_ips():
                         print(f"\n{RED}[!] Error in blocking {src_ip}.{RESET}")
