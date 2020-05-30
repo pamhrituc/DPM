@@ -1,3 +1,4 @@
+from colorama import init, Fore
 from scapy.all import *
 import getmac
 import netifaces as ni
@@ -8,6 +9,10 @@ import socket
 import sys
 import threading
 
+init()
+BLUE = Fore.BLUE
+GREEN = Fore.GREEN
+RED = Fore.RED
 
 def get_ips_by_mac(cache, mac):
     ip_list = []
@@ -59,8 +64,8 @@ def monitor(packet):
                 response_mac = response_mac.replace(':', '-')
             
             if packet[ARP].psrc not in get_ips_by_mac(arp_cache, response_mac):
-                print("[!] An ARP Poisoning attack is being attempted. Attacker MAC: %s. Response MAC: %s." % (response_mac, real_mac))
-                print("[*] Measures being taken to protect against this attack...")
+                printi(f"{BLUE}[!] An ARP Poisoning attack is being attempted. Attacker MAC: {response_mac}. Response MAC: {real_mac}.{RESET}")
+                print(f"{BLUE}[*] Measures being taken to protect against this attack...{RESET}")
                 try:
                     if sys.platform == 'win32':
                         os.popen('arp -d %s %s' % (packet[ARP].psrc, host_ip))
@@ -68,10 +73,10 @@ def monitor(packet):
                     else:
                         os.popen('arp -d %s' % packet[ARP].psrc)
                         os.popen('arp -s %s %s' % (packet[ARP].psrc, arp_cache[packet[ARP].psrc]))
-                    print("[*] Measures applied successfully.")
+                    print(f"{GREEN}[*] Measures applied successfully.{RESET}")
                 except:
-                    print("[!!!] An error has occurred while trying to persist changes to ARP cache. Make sure you are running this tool with admin/root privileges")
-                    print("[!!!] Since your system is under attack, disconnect from the internet. Otherwise, your data can be compromised.")
+                    print(f"{RED}[!!!] An error has occurred while trying to persist changes to ARP cache. Make sure you are running this tool with admin/root privileges{RESET}")
+                    print(f"{RED}[!!!] Since your system is under attack, disconnect from the internet. Otherwise, your data can be compromised.{RESET}")
             elif response_mac == gateway_mac:
                 if sys.platform == 'win32':
                     os.popen('arp -d %s %s' % (gateway_ip, host_ip))
@@ -86,7 +91,7 @@ def monitor(packet):
                     print(arp_cache)
             
         except IndexError:
-            print("[!!!] Unable to find real MAC. The IP may be fake or the packets are blocked.")
+            print(f"{RED}[!!!] Unable to find real MAC. The IP may be fake or the packets are blocked.{RESET}")
     return
 
 try:
@@ -100,29 +105,29 @@ try:
     s.connect(("8.8.8.8", 80))
     host_ip = s.getsockname()[0]
 
-    print ("[*] Your IP Address is: %s" % host_ip)
-    print ("[*] Your default gateway is: %s" % gateway_ip)
+    print (f"{BLUE}[*] Your IP Address is: {host_ip}{RESET}")
+    print (f"{BLUE}[*] Your default gateway is: {gateway_ip}.{RESET}")
 
     gateway_mac = getmac.get_mac_address(ip = gateway_ip)
 
     if gateway_mac is None:
-        print ("[!!!] Failed to get gateway MAC. Exiting...")
+        print (f"{RED}[!!!] Failed to get gateway MAC. Exiting...{RESET}")
         sys.exit(1)
     else:
-        print ("[*] Gateway %s is at %s" % (gateway_ip, gateway_mac))
+        print (f"{GREEN}[*] Gateway {gateway_ip} is at {gateway_mac}.{RESET}")
 
     arp_cache = get_arp_cache()
     print(arp_cache)
 
     if not check_if_arp_poison(arp_cache):
-        print("[!] There is a possibility that your system is under attack.")
+        print(f"{RED}[!] There is a possibility that your system is under attack.")
         print("[!] There are duplicate MAC entries in your arp_cache.")
         print("[!] Try turning your internet off to stop the attack.")
-        print("[!] This program cannot run correctly if your arp cache is currently compromised.")
+        print(f"[!] This program cannot run correctly if your arp cache is currently compromised.{RESET}")
         sys.exit(1)
 
     sniff(filter = "arp", prn = monitor)
 except KeyboardInterrupt:
-    print("[*] User requested shutdown.")
-    print("[*] Exiting...")
+    print(f"{BLUE}[*] User requested shutdown.")
+    print(f"[*] Exiting...{RESET}")
     sys.exit(0)
