@@ -13,6 +13,7 @@ init()
 BLUE = Fore.BLUE
 GREEN = Fore.GREEN
 RED = Fore.RED
+RESET = Fore.RESET
 
 def get_ips_by_mac(cache, mac):
     ip_list = []
