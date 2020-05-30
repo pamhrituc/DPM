@@ -65,7 +65,7 @@ def monitor(packet):
                 response_mac = response_mac.replace(':', '-')
             
             if packet[ARP].psrc not in get_ips_by_mac(arp_cache, response_mac):
-                printi(f"{BLUE}[!] An ARP Poisoning attack is being attempted. Attacker MAC: {response_mac}. Response MAC: {real_mac}.{RESET}")
+                print(f"{BLUE}[!] An ARP Poisoning attack is being attempted. Attacker MAC: {response_mac}. Response MAC: {real_mac}.{RESET}")
                 print(f"{BLUE}[*] Measures being taken to protect against this attack...{RESET}")
                 try:
                     if sys.platform == 'win32':
