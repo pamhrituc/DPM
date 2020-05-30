@@ -1,7 +1,14 @@
+from colorama import init, Fore
 from scapy.all import *
 import socket
 import sys
 import time
+
+init()
+BLUE = Fore.BLUE
+GREEN = Fore.GREEN
+RED = Fore.RED
+RESET = Fore.RESET
 
 def querysniff(packet):
     global host_ip
@@ -18,26 +25,24 @@ def querysniff(packet):
                 ip_from_address = ans.an.rdata
                 if str(ip_from_address).find('b') != 0:
                     if ip_from_gateway != ip_from_address:
-                        #print("(%s, %s)" % (ip_from_gateway, ip_from_address))
-                        #print("%s -> %s: (%s)" % (str(ip_src), str(ip_dst), dns_hostname))
-                        print("[*] Your system might be under a DNS Spoofing attack.")
-                        print("[*] IP address of %s returned from gateway: %s" % (dns_hostname, ip_from_gateway))
-                        print("[*] IP address of %s returned from DNS server: %s" % (dns_hostname, ip_from_address))
+                        print(f"{BLUE}[*] Your system might be under a DNS Spoofing attack.{RESET}")
+                        print(f"{RED}[*] IP address of {dns_hostname} returned from gateway: {ip_from_gateway}.{RESET}")
+                        print(f"{GREEN}[*] IP address of {dns_hostname} returned from DNS server: {ip_from_address}.{RESET}")
                         print()
             except socket.gaierror:
                 print()
 
+if __name__ == "__main__":
+    try:
+        conf.verb = 0
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        host_ip = s.getsockname()[0]
+        print(f"{BLUE}[*] Your host IP address is: {host_ip}.{RESET}")
 
-try:
-    conf.verb = 0
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(('8.8.8.8', 80))
-    host_ip = s.getsockname()[0]
-    print("[*] Your host IP address is: %s" % host_ip)
-    
-    sniff(filter = "port 53", prn = querysniff, store = 0)
-except KeyboardInterrupt:
-    print("[*] User requested shutdown.")
-    print("[*] Exiting...")
-    sys.exit(1)
+        sniff(filter = "port 53", prn = querysniff, store = 0)
+    except KeyboardInterrupt:
+        print(f"{BLUE}[*] User requested shutdown.{RESET}")
+        print(f"{BLUE}[*] Exiting...{RESET}")
+        sys.exit(1)
 
