@@ -1,6 +1,7 @@
 from colorama import init, Fore
 from scapy.all import *
 from scapy.layers.http import HTTPRequest, HTTPResponse
+import datetime
 import os
 import socket
 import sys
@@ -12,21 +13,31 @@ RED = Fore.RED
 RESET = Fore.RESET
 
 def process_packet(packet):
+    now = datetime.datetime.now()
     if packet.haslayer(HTTPRequest):
         src_ip = packet[IP].src
         if src_ip != host_ip:
             if packet[HTTPRequest].Host != None:
                 url = packet[HTTPRequest].Host.decode() + packet[HTTPRequest].Path.decode()
                 method = packet[HTTPRequest].Method.decode()
+                
+                print(f"\n{GREEN}[*] {src_ip} requested {url} with {method}.{RESET}")
+                print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] We just got a request!{RESET}")
+                print(packet.show())
 
-            print(f"\n{BLUE}[**] We just got a request!{RESET}")
-            print(packet.show())
+                if packet.haslayer(Raw) and method == 'POST':
+                    print(f"\n{RED}[*] Raw data: {packet[Raw].load}.{RESET}")
+
 
     if packet.haslayer(HTTPResponse):
         src_ip = packet[IP].src
         if src_ip != host_ip:
-            print(f"\n{GREEN}[**] We just got a response!{RESET}")
-            print(packet.show())
+            if packet[HTTPResponse].Status_Code.decode() == '200':
+                print(f"\{GREEN}[{now.hour}:{now.minute}:{now.second}] We just got a response!{RESET}")
+                print(packet.show())
+
+                if packet.haslayer(Raw):
+                    print(f"\n{RED}[*] Raw data: {packet[Raw].load}.{RESET}")
 
 
 if __name__ == "__main__":
