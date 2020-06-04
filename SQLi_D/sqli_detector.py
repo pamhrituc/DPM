@@ -33,14 +33,14 @@ def process_packet(packet):
                 print(f"\n{GREEN}[*] {src_ip} requested {url} with {method}.{RESET}")
                 print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] We just got a request!{RESET}")
 
-                if packet[TCP].payload:
-                    data_packet = str(packet[TCP].payload)
-                    try:
-                        fields = requests.get('http://' + url)
-                        if [i for i in fieldss if i in data_packet]:
-                            print(data_packet)
-                    except:
-                        pass
+            if packet[TCP].payload:
+                data_packet = str(packet[TCP].payload)
+                try:
+                    fields = requests.get('http://' + url)
+                    if [i for i in fieldss if i in data_packet]:
+                        print(data_packet)
+                except:
+                    pass
 
 
 if __name__ == "__main__":
