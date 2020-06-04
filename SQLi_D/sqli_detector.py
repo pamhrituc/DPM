@@ -1,8 +1,10 @@
 from colorama import init, Fore
+from flak import request
 from scapy.all import *
 from scapy.layers.http import HTTPRequest, HTTPResponse
 import datetime
 import os
+import requests
 import socket
 import sys
 
@@ -11,6 +13,14 @@ BLUE = Fore.BLUE
 GREEN = Fore.GREEN
 RED = Fore.RED
 RESET = Fore.RESET
+
+def return_fields(text):
+    fields = []
+    unprocessed_fields = re.findall("name=[a-zA-Z0-9]+", text)
+    for field in unprocessed_fields:
+        fields.append(field[field.find('=') + 1:])
+
+    return fields
 
 def process_packet(packet):
     now = datetime.datetime.now()
@@ -23,10 +33,14 @@ def process_packet(packet):
                 
                 print(f"\n{GREEN}[*] {src_ip} requested {url} with {method}.{RESET}")
                 print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] We just got a request!{RESET}")
-                print(packet.show())
-
                 if packet.haslayer(Raw) and method == 'POST':
                     print(f"\n{RED}[*] Raw data: {packet[Raw].load}.{RESET}")
+
+                    print(request)
+                    try:
+                        response = requests.get('http://' + url)
+                        for field in return_fields(response.text):
+                            print(request.form[field])
 
 
     if packet.haslayer(HTTPResponse):
@@ -34,8 +48,7 @@ def process_packet(packet):
         if src_ip != host_ip:
             if packet[HTTPResponse].Status_Code.decode() == '200':
                 print(f"\{GREEN}[{now.hour}:{now.minute}:{now.second}] We just got a response!{RESET}")
-                print(packet.show())
-
+                print(request)
                 if packet.haslayer(Raw):
                     print(f"\n{RED}[*] Raw data: {packet[Raw].load}.{RESET}")
 
