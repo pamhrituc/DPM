@@ -50,7 +50,7 @@ if __name__ == "__main__":
         host_ip = s.getsockname()[0]
         print(f"\n{BLUE}[*] Your host ip: {host_ip}.{RESET}")
 
-        sniff(filter = "port 80", prn = process_packet, store = False)
+        sniff(prn = process_packet, store = False)
 
     except KeyboardInterrupt:
         print(f"\n{BLUE}[*] User requested shutdown...{RESET}")
