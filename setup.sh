@@ -35,32 +35,40 @@ if [ $? -eq 0 ]; then
 					sudo pip3 install scapy colorama
 					if [ $? -eq 0 ]; then
 						echo "${green}[*] colorama installed successfully."
-						echo "${blue}[*] Installing getmac..."
+						echo "${blue}[*] Installing flask..."
 						tput sgr0
-						sudo pip3 install getmac
+						sudo pip3 install flask
 						if [ $? -eq 0 ]; then
-							echo "${green}[*] getmac installed successfully."
-							echo "${blue}[*] Installing netifaces..."
+							echo "${green}[flask installed successfully."
+							echo "${blue}[*] Installing getmac..."
 							tput sgr0
-							sudo pip3 install netifaces
+							sudo pip3 install getmac
 							if [ $? -eq 0 ]; then
-								echo "${green}[*] netifaces installed successfully."
-								echo "${green}[*] All necessary prerequisites have been installed successfully! You can now run arp_pam.py."
-								echo "${blue}[*] You should now be able to run any of the 3 tools:"
-								echo "${green}->ARP Poisoning Detector"
-								echo "${blue}	* cd BAP/"
-								echo "${purple}	* python3 arp_pam.py"
-								echo "${green}->DNS Spoofing Detector"
-								echo "${blue}	* cd DDS/"
-								echo "${purple}	* python3 dns_detect.py"
-								echo "${green}->DoS detector & blocker"
-								echo "${blue}	* cd DoSM/"
-								echo "${purple}	* python3 monitor_connection.py"
+								echo "${green}[*] getmac installed successfully."
+								echo "${blue}[*] Installing netifaces..."
+								tput sgr0
+								sudo pip3 install netifaces
+								if [ $? -eq 0 ]; then
+									echo "${green}[*] netifaces installed successfully."
+									echo "${green}[*] All necessary prerequisites have been installed successfully! You can now run arp_pam.py."
+									echo "${blue}[*] You should now be able to run any of the 5 tools:"
+									echo "${green}->ARP Poisoning Detector"
+									echo "${blue}	* cd BAP/"
+									echo "${purple}	* python3 arp_pam.py"
+									echo "${green}->DNS Spoofing Detector"
+									echo "${blue}	* cd DDS/"
+									echo "${purple}	* python3 dns_detect.py"
+									echo "${green}->DoS detector & blocker"
+									echo "${blue}	* cd DoSM/"
+									echo "${purple}	* python3 monitor_connection.py"
+								else
+									echo "${red}[!] Could not install netifaces."
+								fi
 							else
-								echo "${red}[!] Could not install netifaces."
+								echo "${red}[!] Could not install getmac."
 							fi
 						else
-							echo "${red}[!] Could not install getmac."
+							echo "${red}[!] Could not install flask."
 						fi
 					else
 						echo "${red}[!] Could not install colorama."
