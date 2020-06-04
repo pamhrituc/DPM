@@ -33,8 +33,7 @@ def process_packet(packet):
                 
                 print(f"\n{GREEN}[*] {src_ip} requested {url} with {method}.{RESET}")
                 print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] We just got a request!{RESET}")
-                if packet.haslayer(Raw) and method == 'POST':
-                    print(f"\n{RED}[*] Raw data: {packet[Raw].load}.{RESET}")
+                if method == 'POST':
 
                     print(request)
                     try:
@@ -51,8 +50,6 @@ def process_packet(packet):
             if packet[HTTPResponse].Status_Code.decode() == '200':
                 print(f"\{GREEN}[{now.hour}:{now.minute}:{now.second}] We just got a response!{RESET}")
                 print(request)
-                if packet.haslayer(Raw):
-                    print(f"\n{RED}[*] Raw data: {packet[Raw].load}.{RESET}")
 
 
 if __name__ == "__main__":
