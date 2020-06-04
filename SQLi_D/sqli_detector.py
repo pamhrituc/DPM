@@ -41,6 +41,8 @@ def process_packet(packet):
                         response = requests.get('http://' + url)
                         for field in return_fields(response.text):
                             print(request.form[field])
+                    except:
+                        pass
 
 
     if packet.haslayer(HTTPResponse):
