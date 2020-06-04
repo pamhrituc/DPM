@@ -34,8 +34,6 @@ def process_packet(packet):
                 print(f"\n{GREEN}[*] {src_ip} requested {url} with {method}.{RESET}")
                 print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] We just got a request!{RESET}")
                 if method == 'POST':
-
-                    print(request)
                     try:
                         response = requests.get('http://' + url)
                         for field in return_fields(response.text):
@@ -49,7 +47,6 @@ def process_packet(packet):
         if src_ip != host_ip:
             if packet[HTTPResponse].Status_Code.decode() == '200':
                 print(f"\{GREEN}[{now.hour}:{now.minute}:{now.second}] We just got a response!{RESET}")
-                print(request)
 
 
 if __name__ == "__main__":
