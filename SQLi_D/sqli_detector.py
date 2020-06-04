@@ -23,24 +23,32 @@ def return_fields(text):
 
 def process_packet(packet):
     now = datetime.datetime.now()
-    if packet.haslayer(TCP) and packet.haslayer(HTTPRequest):
-        src_ip = packet[IP].src
-        if src_ip != host_ip:
-            if packet[HTTPRequest].Host != None:
-                url = packet[HTTPRequest].Host.decode() + packet[HTTPRequest].Path.decode()
-                method = packet[HTTPRequest].Method.decode()
+    if packet[TCP].payload:
+        data_packet = str(packet[TCP].payload)
+        url = data_packet[data_packet.find('Referer: ') + len('Referer: '):]
+        url = url[:url.find("\\r\\n")]
+        print(f"1: {packet[TCP].payload}")
+        if packet.haslayer(HTTPRequest):
+            src_ip = packet[IP].src
+            if src_ip != host_ip:
+                if packet[HTTPRequest].Host != None:
+                    url = packet[HTTPRequest].Host.decode() + packet[HTTPRequest].Path.decode()
+                    method = packet[HTTPRequest].Method.decode()
+                    print(f"\n{GREEN}[*] {src_ip} requested {url} with {method}.{RESET}")
+                    print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] We just got a request!{RESET}")
+                    if method == 'POST':
+                        try:
+                            if 'http' not in url:
+                                url = 'http://' + url
+                            fields = return_fields(requests.get(url).text)
+                            print(f"2: {data_packet}")
+                            for field in fields:
+                                if field in data_packet.lower():
+                                    print(f"3: {data_packet}")
+                            print(f"4: {data_packet}")
+                        except Exception as e:
+                            print(e)
 
-                print(f"\n{GREEN}[*] {src_ip} requested {url} with {method}.{RESET}")
-                print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] We just got a request!{RESET}")
-
-            if packet[TCP].payload:
-                data_packet = str(packet[TCP].payload)
-                try:
-                    fields = requests.get('http://' + url)
-                    if [i for i in fieldss if i in data_packet]:
-                        print(data_packet)
-                except:
-                    pass
 
 
 if __name__ == "__main__":
@@ -50,7 +58,7 @@ if __name__ == "__main__":
         host_ip = s.getsockname()[0]
         print(f"\n{BLUE}[*] Your host ip: {host_ip}.{RESET}")
 
-        sniff(prn = process_packet, store = False)
+        sniff(filter = 'tcp', prn = process_packet, store = False)
 
     except KeyboardInterrupt:
         print(f"\n{BLUE}[*] User requested shutdown...{RESET}")
