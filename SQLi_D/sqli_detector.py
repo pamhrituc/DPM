@@ -23,24 +23,24 @@ def return_fields(text):
 
 def process_packet(packet):
     now = datetime.datetime.now()
-        if packet.haslayer(TCP) and packet.haslayer(HTTPRequest):
-            src_ip = packet[IP].src
-            if src_ip != host_ip:
-                if packet[HTTPRequest].Host != None:
-                    url = packet[HTTPRequest].Host.decode() + packet[HTTPRequest].Path.decode()
-                    method = packet[HTTPRequest].Method.decode()
+    if packet.haslayer(TCP) and packet.haslayer(HTTPRequest):
+        src_ip = packet[IP].src
+        if src_ip != host_ip:
+            if packet[HTTPRequest].Host != None:
+                url = packet[HTTPRequest].Host.decode() + packet[HTTPRequest].Path.decode()
+                method = packet[HTTPRequest].Method.decode()
 
-                    print(f"\n{GREEN}[*] {src_ip} requested {url} with {method}.{RESET}")
-                    print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] We just got a request!{RESET}")
+                print(f"\n{GREEN}[*] {src_ip} requested {url} with {method}.{RESET}")
+                print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] We just got a request!{RESET}")
 
-                    if packet[TCP].payload:
-                        data_packet = str(packet[TCP].payload)
-                        try:
-                            fields = requests.get('http://' + url)
-                            if [i for i in fieldss if i in data_packet]:
-                                print(data_packet)
-                        except:
-                            pass
+                if packet[TCP].payload:
+                    data_packet = str(packet[TCP].payload)
+                    try:
+                        fields = requests.get('http://' + url)
+                        if [i for i in fieldss if i in data_packet]:
+                            print(data_packet)
+                    except:
+                        pass
 
 
 if __name__ == "__main__":
