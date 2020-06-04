@@ -1,5 +1,5 @@
 from colorama import init, Fore
-from flak import request
+from flask import request
 from scapy.all import *
 from scapy.layers.http import HTTPRequest, HTTPResponse
 import datetime
