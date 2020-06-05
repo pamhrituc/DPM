@@ -31,6 +31,20 @@ def return_fields(text):
 
     return fields
 
+def sqli_detector(text):
+    sql_key_terms = ["AND", "CREATE", "DELETE", "DROP", "FROM", "INSERT", "JOIN", "LIKE", "NOT", "OR", "ORDER", "SELECT", "TABLE", "UNION", "UPDATE", "VALUES", "WHERE"]
+    for sql_key_term in sql_key_terms:
+        if sql_key_term in text:
+            return True
+    return False
+
+def xss_detector(text):
+    xss_key_terms = ["script"]
+    for xss_key_term in xss_key_terms:
+        if xss_key_term in text:
+            return True
+    return False
+
 def process_packet(packet):
     global url
     global fields
