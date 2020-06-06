@@ -31,6 +31,18 @@ def return_fields(text):
 
     return fields
 
+def data_polisher(field, text):
+    if field not in text:
+        return text
+    else:
+        if "&" in text:
+            index_1 = text.find("=")
+            index_2 = text.find("&")
+            text = text[index_1 : index_1 + index_2]
+        else:
+            #no idea, what else could the data look like??
+            pass
+
 def sqli_detector(text):
     sql_key_terms = ["AND", "CREATE", "DELETE", "DROP", "FROM", "INSERT", "JOIN", "LIKE", "NOT", "OR", "ORDER", "SELECT", "TABLE", "UNION", "UPDATE", "VALUES", "WHERE"]
     for sql_key_term in sql_key_terms:
