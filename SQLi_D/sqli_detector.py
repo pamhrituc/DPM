@@ -22,11 +22,12 @@ def return_fields(text):
         for input_type in input_types:
             if input_type in unprocessed_input_fields[i]:
                 if "name" in unprocessed_input_fields[i]:
-                    temp = re.findall("name ?= ?[\"\']?[a-zA-Z0-9]+[\"\']?", unprocessed_input_fields[i])[0]
-                    fields.append(temp[temp.find('=') + 2:-1])
+                    temp = re.findall("name ?= ?[\"\']?[a-zA-Z0-9]+[\"\']?", unprocessed_input_fields[i])[0].replace(" ", "")
+                    print(temp)
+                    fields.append(temp[temp.find('=') + 1:])
                 elif "id" in unprocessed_input_fields[i]:
-                    temp = re.findall("id ?= ?[\"\']?[a-zA-Z0-9]+[\"\']?", unprocessed_input_fields[i])[0]
-                    fields.append(temp[temp.find('=') + 2 : -1])
+                    temp = re.findall("id ?= ?[\"\']?[a-zA-Z0-9]+[\"\']?", unprocessed_input_fields[i])[0].replace(" ", "")
+                    fields.append(temp[temp.find('=') + 1:])
                 continue
 
     return fields
@@ -35,11 +36,13 @@ def data_polisher(field, text):
     if field not in text:
         return text
     else:
-        if "&" in text:
-            index_1 = text.find("=")
-            index_2 = text.find("&")
-            text = text[index_1 : index_1 + index_2]
-            print("3: " + text)
+        if "&" in text and "=" in text:
+            if text[:2] == "b'":
+                text = text[2:-1]
+            index_1 = text.find(field + "=")
+            index_2 = text[index_1:].find("&")
+            text = text[len(field + "=") + index_1 : index_1 + index_2]
+            print("dp: " + text)
             return text
 
 def sqli_detector(text):
@@ -68,9 +71,10 @@ def process_packet(packet):
             print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] We just got a request!{RESET}")
             try:
                 for field in fields:
+                    print(field)
                     if field in data_packet.lower():
                         print(f"3: {data_packet}")
-                        data_packet_polished = data_polisher(data_packet)
+                        data_packet_polished = data_polisher(field, data_packet)
                         if sqli_detector(data_packet_polished):
                             print(f"\n{RED}Possible SQLi detected. User inputed: {data_packet_polished} in field {field}{RESET}")
                         if xss_detector(data_packet_polished):
