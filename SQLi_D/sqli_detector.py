@@ -39,6 +39,7 @@ def data_polisher(field, text):
             index_1 = text.find("=")
             index_2 = text.find("&")
             text = text[index_1 : index_1 + index_2]
+            return text
         else:
             #no idea, what else could the data look like??
             pass
@@ -71,6 +72,11 @@ def process_packet(packet):
                 for field in fields:
                     if field in data_packet.lower():
                         print(f"3: {data_packet}")
+                        data_packet_polished = data_polisher(dat_packet)
+                        if sqli_detector(data_packet_polished):
+                            print(f"\n{RED}Possible SQLi detected. User inputed: {data_packet_polished} in field {field}{RESET}")
+                        if xss_detector(data_packet_polished):
+                            print(f"\n{RED}Possible XSS detected. User inputed: {data_packet_polished} in field {field}{RESET}")
             except Exception as e:
                 print(e)
 
