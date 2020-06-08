@@ -23,7 +23,6 @@ def return_fields(text):
             if input_type in unprocessed_input_fields[i]:
                 if "name" in unprocessed_input_fields[i]:
                     temp = re.findall("name ?= ?[\"\']?[a-zA-Z0-9]+[\"\']?", unprocessed_input_fields[i])[0].replace(" ", "")
-                    print(temp)
                     fields.append(temp[temp.find('=') + 1:])
                 elif "id" in unprocessed_input_fields[i]:
                     temp = re.findall("id ?= ?[\"\']?[a-zA-Z0-9]+[\"\']?", unprocessed_input_fields[i])[0].replace(" ", "")
@@ -42,18 +41,19 @@ def data_polisher(field, text):
             index_1 = text.find(field + "=")
             index_2 = text[index_1:].find("&")
             text = text[len(field + "=") + index_1 : index_1 + index_2]
-            print("dp: " + text)
             return text
 
 def sqli_detector(text):
-    sql_key_terms = ["AND", "CREATE", "DELETE", "DROP", "FROM", "INSERT", "JOIN", "LIKE", "NOT", "OR", "ORDER", "SELECT", "TABLE", "UNION", "UPDATE", "VALUES", "WHERE"]
-    for sql_key_term in sql_key_terms:
-        if sql_key_term in text:
+    sqli_key_terms = ["AND", "CREATE", "DELETE", "DROP", "FROM", "INSERT", "JOIN", "LIKE", "NOT", "OR", "ORDER", "SELECT", "TABLE", "UNION", "UPDATE", "VALUES", "WHERE"]
+    for sqli_key_term in sqli_key_terms:
+        if sqli_key_term in text.upper():
             return True
     return False
 
 def xss_detector(text):
-    xss_key_terms = ["script"]
+    pattern = re.compile('[\W_]+')
+    text = pattern.sub('', text.lower())
+    xss_key_terms = ["alert", "document", "onerror", "onmouseover", "script"]
     for xss_key_term in xss_key_terms:
         if xss_key_term in text:
             return True
@@ -67,8 +67,7 @@ def process_packet(packet):
         data_packet = str(packet[TCP].payload)
         src_ip = packet[IP].src
         if src_ip != host_ip:
-            print(f"\n{GREEN}[{now.hour}:{now.minute}:{now.second}] {src_ip} requested {url}.{RESET}")
-            print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] We just got a request!{RESET}")
+            print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] {src_ip} accessed {url}.{RESET}")
             try:
                 for field in fields:
                     print(field)
@@ -76,9 +75,9 @@ def process_packet(packet):
                         print(f"3: {data_packet}")
                         data_packet_polished = data_polisher(field, data_packet)
                         if sqli_detector(data_packet_polished):
-                            print(f"\n{RED}Possible SQLi detected. User inputed: {data_packet_polished} in field {field}{RESET}")
+                            print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}]{RED}Possible SQLi detected. {src_ip} inputed: {data_packet_polished} in field {field}{RESET}")
                         if xss_detector(data_packet_polished):
-                            print(f"\n{RED}Possible XSS detected. User inputed: {data_packet_polished} in field {field}{RESET}")
+                            print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}]{RED}Possible XSS detected. {src_ip} inputed: {data_packet_polished} in field {field}{RESET}")
             except Exception as e:
                 print(e)
 
