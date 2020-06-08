@@ -48,7 +48,7 @@ def data_polisher(field, text):
 def sqli_detector(text):
     sqli_key_terms = ["AND", "CREATE", "DELETE", "DROP", "FROM", "INSERT", "JOIN", "LIKE", "NOT", "OR", "ORDER", "SELECT", "TABLE", "UNION", "UPDATE", "VALUES", "WHERE"]
     for sqli_key_term in sqli_key_terms:
-        if sqli_key_term in text.upper():
+        if "+" + sqli_key_term in text.upper() or sqli_key_term + "+" in text.upper():
             return True
     return False
 
