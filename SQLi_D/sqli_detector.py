@@ -1,6 +1,7 @@
 from colorama import init, Fore
 from scapy.all import *
 from scapy.layers.http import HTTPRequest, HTTPResponse
+from urllib.parse import unquote
 import argparse
 import datetime
 import os
