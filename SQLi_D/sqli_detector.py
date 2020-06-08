@@ -72,7 +72,7 @@ def process_packet(packet):
             try:
                 for field in fields:
                     if field in data_packet.lower():
-                        data_packet_polished = data_polisher(field, data_packet)
+                        data_packet_polished = unquote(data_polisher(field, data_packet))
                         if sqli_detector(data_packet_polished):
                             print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}]{RED}Possible SQLi detected. {src_ip} inputed: {data_packet_polished} in field {field}{RESET}")
                         if xss_detector(data_packet_polished):
