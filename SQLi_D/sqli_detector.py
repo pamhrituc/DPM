@@ -4,6 +4,7 @@ from scapy.layers.http import HTTPRequest, HTTPResponse
 import argparse
 import datetime
 import os
+import re
 import requests
 import socket
 import sys
