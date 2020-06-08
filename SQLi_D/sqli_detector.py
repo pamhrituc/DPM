@@ -42,7 +42,7 @@ def data_polisher(field, text):
             index_1 = text.find(field + "=")
             index_2 = text[index_1:].find("&")
             text = text[len(field + "=") + index_1 : index_1 + index_2]
-            return text
+            return str(text)
 
 def sqli_detector(text):
     sqli_key_terms = ["AND", "CREATE", "DELETE", "DROP", "FROM", "INSERT", "JOIN", "LIKE", "NOT", "OR", "ORDER", "SELECT", "TABLE", "UNION", "UPDATE", "VALUES", "WHERE"]
@@ -71,9 +71,7 @@ def process_packet(packet):
             print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}] {src_ip} accessed {url}.{RESET}")
             try:
                 for field in fields:
-                    print(field)
                     if field in data_packet.lower():
-                        print(f"3: {data_packet}")
                         data_packet_polished = data_polisher(field, data_packet)
                         if sqli_detector(data_packet_polished):
                             print(f"\n{BLUE}[{now.hour}:{now.minute}:{now.second}]{RED}Possible SQLi detected. {src_ip} inputed: {data_packet_polished} in field {field}{RESET}")
