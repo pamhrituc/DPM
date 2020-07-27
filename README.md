@@ -35,7 +35,41 @@ The script will display your host's IP address, before sniffing for packets with
 
 ### DoSM: Slowloris Detetection & Mitigation Tool
 
+This tool contains the following scripts:
+- monitor_connection.py: The script which monitors all connections your server receives & blocks IP addresses which establish more connections than the maximum number allowed (can be set by user, otherwise default: 100).
+- no_connections_ip.sh: A script used by monitor_connection that returns the number of connections established by an IP address.
+- unblock_ip.sh: A script which unblocks an IP address or all IP address, depending on the option used by the user.
+
+The monitor_connection.py will detect all IP addresses which connect to your server & block any IP address which established more connections than allowed. The following command is used to run this tool:
+```
+python3 monitor_connection.py
+```
+This script allows the user to choose the maximum number of connections allowed from any IP address. For example:
+```
+python3 monitor_connection.py -c 50
+```
+will block any IP address which opens more than 50 connections with your system. If not parameter is given, the default number of allowed connections is 100.
+
+To unblock a specific IP address, run:
+```
+./unblock_ip.sh [IP_address]
+```
+To unblock all blocked IP addresses, run:
+```
+./unblock_ip.sh -a
+```
+**__To run the unblocking script, make sure it has execution rights.__**
+
 ### SQLi_XSS_D: SQL Injection/Cross-Site Scripting Real-Time Detection Tool
+
+This tool is a real-time SQLi/XSS detector. It checks user input for SQLi/XSS keywords and alerts if any positives are found. Only tested on a website hosted on a Peppermint Linux VM, XAMPP, written in PHP. To run this script, use the following command:
+```
+python3 sqli_xss_detector.py -u [subpage hosted by your system]
+```
+or
+```
+python3 sqli_xss_detector.py --url [subpage hosted by your system]
+```
 
 ###### To-do:
 - Block attackers IP address in case of ARP Poisoning
